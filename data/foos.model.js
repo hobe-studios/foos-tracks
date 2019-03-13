@@ -21,22 +21,14 @@ userSchema.statics.validPassword = function(password) {
     return bcrypt.compareSync(password, this.password);
 }
 
-var teamSchema = new mongoose.Schema({
-    members: [String],
-    name: String
-})
+// var teamSchema = new mongoose.Schema({
+//     members: [String],
+//     name: String
+// })
 
 var gameSchema = new mongoose.Schema({
-    datePlayed: {
-        type: Date,
-        "default": Date.now
-    },
-    teams: [teamSchema],
-    scores: [Number],
-    startTime: {
-        type: Date,
-        "default": Date.now
-    },
+    opponents: [{members: [String], score: Number}],
+    startTime: Date,
     endTime: Date
 });
 
