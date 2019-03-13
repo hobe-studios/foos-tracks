@@ -1,17 +1,18 @@
 var express = require('express');
 var router = express.Router();
 
-/* GET users listing. */
-router.get('/', function(req, res, next) {
-  //res.send('respond with a resource');
-    // And insert something like this instead:
-    res.json([{
-      id: 1,
-      username: "samsepi0l"
-    }, {
-      id: 2,
-      username: "D0loresH4ze"
-    }]);
-});
+var userCntl = require('../controllers/users.controllers.js')
+
+// User Routes
+router
+    .route('/')
+    .get(userCntl.usersGetAll)
+    .post(userCntl.usersAddOne);
+
+router
+    .route('/:userId')
+    .get(userCntl.usersGetOne)
+    .put(userCntl.usersUpdateOne)
+    .delete(userCntl.usersDeleteOne);
 
 module.exports = router;
