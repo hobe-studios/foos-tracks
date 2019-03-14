@@ -176,7 +176,7 @@ module.exports.usersAuthenticate = function(req, res) {
         
         let user = doc[0]
 
-        if (user.validPassword(password)) {
+        if (user.validatePassword(password)) {
             response.status = 200
             response.message = {
                 message: 'Authentication successful'
