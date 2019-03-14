@@ -2,12 +2,23 @@ var mongoose = require('mongoose');
 var bcrypt = require('bcrypt');
 
 var userSchema = new mongoose.Schema({
-    name: {
+    userName: {
         type: String,
         required: true
     },
-    nfcId: String,
-    password: String
+    firstName: {
+        type: String,
+        required: true
+    },
+    lastName: {
+        type: String,
+        required: true
+    },
+    password: {
+        type: String,
+        required: true
+    },
+    nfcId: String
 });
 
 // https://stackoverflow.com/questions/43092071/how-should-i-store-salts-and-passwords-in-mongodb
@@ -17,7 +28,7 @@ userSchema.statics.generateHash = function(password) {
 };
 
 // checking if password is valid
-userSchema.statics.validPassword = function(password) {
+userSchema.methods.validPassword = function(password) {
     return bcrypt.compareSync(password, this.password);
 }
 

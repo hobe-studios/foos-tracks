@@ -91,28 +91,110 @@ module.exports.usersGetOne = function(req, res) {
     });
 };
 
-module.exports.usersAddOne = function(req, res) {
+module.exports.usersRegister = function(req, res) {
     
+    var userName = req.body.userName;
+    var password = req.body.password;
+    var firstName = req.body.firstName;
+    var lastName = req.body.lastName;
+
+    // TODO: Validate the password is secure enough
+
+    // TODO: Ensure that username is not already taken
     User
-    .create({
-        name: req.body.name,
-        password: User.generateHash(req.body.password),
-        nfcId: makeId()
-    }, function(err, user) {
+    .find({userName: userName})
+    .exec(function(err, doc) {
+        
         if (err) {
-            console.log('Error creating user');
+            console.log('Error when trying to find if user already exists in db');
             res
-            .status(400)
+            .status(500)
             .json(err);
-        } else {
-            console.log('User created ', user);
-            res
-            .status(201)
-            .json(user);
+            return
+        } else if (doc.length > 0) { 
+            console.log('Username already exists, cannot register with this name.');
+            res.status(400);
+            res.json({
+                message: 'Username already exists in database: ' + userName
+            });
+            return
         }
+
+        // Create user
+        User
+        .create({
+            userName: userName,
+            firstName: firstName,
+            lastName: lastName,
+            password: User.generateHash(password),
+            nfcId: makeId()
+        }, function(err, user) {
+            if (err) {
+                console.log('Error creating user');
+                res
+                .status(400)
+                .json(err);
+            } else {
+                console.log('User created ', user);
+                res
+                .status(201)
+                .json(user);
+            }
+        });
     });
-    
 };
+
+module.exports.usersAuthenticate = function(req, res) {
+
+    var userName = req.body.userName;
+    var password = req.body.password;
+
+    // Find user in database
+    User
+    .find({ userName: userName})
+    .exec(function(err, doc) {
+        var response = {
+            'status': 500,
+            'message': {
+                message: "Unknown error occurred"
+            }
+        };
+        
+        if (err) {
+            console.log('Error finding a user');
+            res.status(500);
+            res.json(err);
+            return;
+        } else if (doc.length == 0) {
+            console.log('User id not found in database: ', userName);
+            res.status(500);
+            res.json({
+                message: 'Authentication failed'
+            });
+            return;
+        }
+        
+        let user = doc[0]
+
+        if (user.validPassword(password)) {
+            response.status = 200
+            response.message = {
+                message: 'Authentication successful'
+            }
+        } else {
+            console.log('Invalid password provided');
+            response.status = 401
+            response.message = {
+                message: 'Authentication failed'
+            };
+        }
+
+        res
+        .status(response.status)
+        .json(response.message);
+    })
+
+}
 
 module.exports.usersUpdateOne = function(req, res) {
     
