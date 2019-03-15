@@ -1,7 +1,7 @@
 import { userService } from '../services';
 import { alertActions } from '.';
 import { history } from '../utils';
-import {userConstants} from '../actionTypes'
+import { userConstants } from '../actionTypes'
 
 export const userActions = {
     login,
@@ -84,7 +84,7 @@ function _delete(id) {
 
         userService.delete(id)
             .then(
-                user => dispatch(success(id)),
+                id => dispatch(success(id)),
                 error => dispatch(failure(id, error.toString()))
             );
     };

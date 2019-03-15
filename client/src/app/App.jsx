@@ -8,6 +8,7 @@ import { PrivateRoute } from '../components';
 import { HomePage } from '../containers/Home';
 import { LoginPage } from '../containers/Login';
 import { RegisterPage } from '../containers/Register';
+import { GameHistoryPage } from '../containers/GameHistory';
 
 class App extends React.Component {
     constructor(props) {
@@ -34,6 +35,7 @@ class App extends React.Component {
                                 <PrivateRoute exact path="/" component={HomePage} />
                                 <Route path="/login" component={LoginPage} />
                                 <Route path="/register" component={RegisterPage} />
+                                <Route path="/gamesplayed" component={GameHistoryPage} />
                             </div>
                         </Router>
                     </div>

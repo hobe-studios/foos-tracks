@@ -14,12 +14,12 @@ class HomePage extends React.Component {
     }
 
     render() {
-        const { user, users } = this.props;
+        const { currentUser, users } = this.props;
         return (
             <div className="col-md-6 col-md-offset-3">
-                <h1>Hi {user.firstName}!</h1>
+                <h1>Hi {currentUser.firstName}!</h1>
                 <p>You're logged in with React!!</p>
-                <h3>All registered users:</h3>
+                <h3>All registered currentUsers:</h3>
                 {users.loading && <em>Loading users...</em>}
                 {users.error && <span className="text-danger">ERROR: {users.error}</span>}
                 {users.items &&
@@ -48,7 +48,7 @@ function mapStateToProps(state) {
     const { users, authentication } = state;
     const { user } = authentication;
     return {
-        user,
+        currentUser: user,
         users
     };
 }
