@@ -12,7 +12,7 @@ class RegisterPage extends React.Component {
             user: {
                 firstName: '',
                 lastName: '',
-                username: '',
+                userName: '',
                 password: ''
             },
             submitted: false
@@ -36,10 +36,13 @@ class RegisterPage extends React.Component {
     handleSubmit(event) {
         event.preventDefault();
 
+        console.log("Got to handle submit")
+
         this.setState({ submitted: true });
         const { user } = this.state;
         const { dispatch } = this.props;
-        if (user.firstName && user.lastName && user.username && user.password) {
+        if (user.firstName && user.lastName && user.userName && user.password) {
+            console.log("Got to dispatch register")
             dispatch(userActions.register(user));
         }
     }
