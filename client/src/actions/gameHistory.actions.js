@@ -1,5 +1,4 @@
 import { gameService } from '../services';
-import { alertActions } from '.';
 import { gameHistoryConstants } from '../actionTypes'
 
 export const gameHistoryActions = {

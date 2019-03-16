@@ -16,23 +16,43 @@ class GameHistoryPage extends React.Component {
     render() {
         const { gameHistory } = this.props;
         return (
-            <div className="col-md-6 col-md-offset-3">
+            <div className="">
                 <h1>Games Played</h1>
                 {gameHistory.loading && <em>Loading games played ...</em>}
                 {gameHistory.error && <span className="text-danger">ERROR: {gameHistory.error}</span>}
                 {gameHistory.items &&
-                    <ul>
-                        {gameHistory.items.map((game, index) =>
-                            <li key={game._id}>
-                                {'Start: ' + game.startTime + ', End: ' + game.endTime}
-                                {
-                                    game.deleting ? <em> - Deleting...</em>
-                                    : game.deleteError ? <span className="text-danger"> - ERROR: {game.deleteError}</span>
-                                    : <span> - <a onClick={this.handleDeleteGame(game._id)}>Delete</a></span>
-                                }
-                            </li>
-                        )}
-                    </ul>
+
+                    <table className="table table">
+                        <th>
+                            <td>
+                                Start Time
+                            </td>
+                            <td>
+                                End Time
+                            </td>
+                            <td>
+                                Score
+                            </td>
+                        </th>
+                        {gameHistory.items.map((game, index) => {
+                            let team1 = game.opponents[0]
+                            let team2 = game.opponents[1]
+                            return <tr>
+                                <td>
+                                {game.startTime}
+                                </td>
+                                <td>
+                                {game.endTime}
+                                </td>
+                                <td>
+                                {game.endTime}
+                                </td>
+                                <td>
+                                {team1.score + ' - ' + team2.score}
+                                </td>
+                            </tr>
+                        })}
+                    </table>
                 }
                 <p>
                     <Link to="/login">Logout</Link>

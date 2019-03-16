@@ -19,7 +19,7 @@ class HomePage extends React.Component {
             <div className="col-md-6 col-md-offset-3">
                 <h1>Hi {currentUser.firstName}!</h1>
                 <p>You're logged in with React!!</p>
-                <h3>All registered currentUsers:</h3>
+                <h3>All registered users:</h3>
                 {users.loading && <em>Loading users...</em>}
                 {users.error && <span className="text-danger">ERROR: {users.error}</span>}
                 {users.items &&
