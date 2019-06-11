@@ -7,7 +7,7 @@ References:
 
 https://daveceddia.com/create-react-app-express-backend   
 https://treehouse.github.io/installation-guides/mac/mongo-mac.html   
-
+https://docs.python.org/3.6/library/tk.html
 
 ## Mongdb Notes
 
@@ -27,3 +27,28 @@ After installing MongoDB with Homebrew:
 - The mongo logs can be found at /usr/local/var/log/mongodb/
 - The mongo binaries are here: /usr/local/Cellar/mongodb/[version]/bin
 
+## Game Manager UI Design
+
+Createing a simple UI using tkinter as a POC
+
+- Home page
+  - Label "VIPER Foosball World"
+  - Button "Start"
+
+- Enter players view
+  - Four text inputs
+    - Team 1
+      - player 1
+      - player 2
+    - Team 2
+      - player 1
+      - player 2
+  - Start button
+
+- Game stats view
+  - Current time elapsed
+  - Team scores
+
+- Goal splash screen view
+  - image GOAL!!
+  - sound clip GOAL in spanish
