@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #
 #  score_keeper.py
@@ -25,77 +25,10 @@ from gpiozero import Button, PWMLED, MotionSensor
 from time import sleep
 from signal import pause
 from datetime import datetime
-
+import simpleaudio as sa
+from models import Game, Goal, Team
 
 WIN_SCORE = 5
-
-
-class Game:
-    
-    team1 = None
-    team2 = None
-    start_time = None
-    end_time = None
-    finished = False
-
-    def __init__(self, team1, team2):
-        assert (team1 is not None), "Team 1 must be defined"
-        assert (team2 is not None), "Team 2 must be defined"
-        self.team1 = team1
-        self.team2 = team2
-        self.team1.score = 0
-        self.team2.score = 0
-        self.start_time = datetime.now()
-        self.finished = False
-
-    def get_winning_team(self):
-        if self.team1.score == self.team2.score:
-            return None
-        return self.team1 if self.team1.score > self.team2.score else self.team2 
-
-    def get_losing_team(self):
-        if self.team1.score == self.team2.score:
-            return None
-        return self.team1 if self.team1.score < self.team2.score else self.team2
-
-    def finish(self):
-        self.finished = True
-        self.end_time = datetime.now()
-
-
-class Goal:
-    name = ""
-    input_device = None
-    handle_score = None
-    has_scored = False
-
-    def __init__(self, input_pin, name="The goal", score_handler=None):
-        self.name = name
-        self.input_device = Button(input_pin)
-        self.input_device.hold_time = 0.05
-        self.input_device.when_held = self.scored
-        self.handle_score = score_handler
-
-    def scored(self):
-        #print("Goal scored in {0}!!".format(self.name))
-        self.handle_score()
-
-
-class Team:
-    
-    id = -1
-    name = ""
-    score = 0
-
-    def __init__(self, id, name):
-        self.id = id
-        self.name = name
-
-    def scored(self):
-        self.score += 1
-        msg = "{0} has scored!!!\nNow has {1} points".format(self.name, self.score)
-        print(msg)
-
 
 def check_game(game):
     if game.team1.score >= WIN_SCORE and game.team2.score >= WIN_SCORE:
@@ -131,18 +64,36 @@ def ask_for_new_game():
     print("New game?")
 
 
+def play_sound_clip(sound_file, wait=False):
+    wave_obj = sa.WaveObject.from_wave_file(sound_file)
+    play_obj = wave_obj.play()
+    if wait:
+        play_obj.wait_done() 
+
+
 def main(args):
 
-    team1 = Team(id=1, name="Team 1")
-    team2 = Team(id=2, name="Team 2")
+    team_scored = lambda: play_sound_clip("/home/pi/Projects/FoosTracks/resources/SoccerGoal.wav")
 
-    goal_a = Goal(input_pin=17, name="Goal A", score_handler=team1.scored)
+    team1 = Team(id=1, name="Team 1", score_handler=team_scored)
+    team2 = Team(id=2, name="Team 2", score_handler=team_scored)
+
+    dev = MotionSensor(16, pull_up=True, sample_rate=60, queue_len=3)
+    goal_a = Goal(name="Goal A",
+                  score_device=dev,
+                  score_handler=team1.scored)
     goal_a.assigned_team = team1
 
-    goal_b = Goal(input_pin=18, name="Goal B", score_handler=team2.scored)
-    goal_b.assigned_team = team2
+    dev = MotionSensor(18, pull_up=True, sample_rate=60, queue_len=3)
+    goal_a = Goal(name="Goal B",
+                  score_device=dev,
+                  score_handler=team1.scored)
+
+    print("Starting game!")
 
     game = Game(team1=team1, team2=team2)
+
+    play_sound_clip("/home/pi/Projects/FoosTracks/resources/SoccerCrowd.wav")
 
     while not game.finished:
         check_game(game)
@@ -152,32 +103,41 @@ def main(args):
     ask_for_new_game()
     pause()
 
+# # Test main methods
 
-# Test main methods
-
-def main_pwm(args):
-    led = PWMLED(21)
-    led.pulse()
-    pause()
-
-
-def handle_motion():
-    print("Shake switch moved.")
+# def main_pwm(args):
+#     led = PWMLED(21)
+#     led.pulse()
+#     pause()
 
 
-def main_vib(args):
-    vib = MotionSensor(16, pull_up=True)
-    print("Waiting for motion ...")
-    vib.when_motion = handle_motion
+# def handle_motion():
+#     print("Shake switch moved.")
 
-    #pause()
 
-    while True:
-        print(vib.value)
-        sleep(0.1)
+# def main_vib(args):
+#     vib = MotionSensor(16, pull_up=True)
+#     print("Waiting for motion ...")
+#     vib.when_motion = lambda: print("Shake switch moved.") #handle_motion
+
+#     #pause()
+
+#     while True:
+#         print(vib.value)
+#         sleep(0.1)
+
+
+# def main_play_sound(args):
+#     print("Gonna play sound ...")
+#     sound_file = "/home/pi/Projects/FoosTracks/resources/SoccerCrowd.wav"
+#     wave_obj = sa.WaveObject.from_wave_file(sound_file)
+#     play_obj = wave_obj.play()
+#     print("Should be playing sound ...")
+#     play_obj.wait_done()
 
 
 if __name__ == '__main__':
     import sys
+    #main = main_play_sound
     #main = main_vib
     sys.exit(main(sys.argv))

@@ -90,7 +90,7 @@ module.exports.gamesAddOne = function(req, res) {
     
     Game
     .create({
-        opponents: req.body.opponents,
+        teams: req.body.teams,
         startTime: req.body.startTime,
         endTime: req.body.endTime
     }, function(err, game) {
@@ -112,7 +112,7 @@ module.exports.gamesAddOne = function(req, res) {
 module.exports.gamesUpdateOne = function(req, res) {
     
     var gameId = req.params.gameId;
-    console.log("GET the game id " + gameId);
+    console.log("PUT the game id " + gameId);
     
     Game
     .findById(gameId)
@@ -141,18 +141,18 @@ module.exports.gamesUpdateOne = function(req, res) {
             .json(response.message);
         } else {
             // Update returned game document with form data
-            var oppnts = req.body.opponents;
+            var teams = req.body.teams;
             //for (let o of oppnts) {
-            for( var i = 0; i < oppnts.length; i++) {
-                let o = oppnts[i];
-                console.log(o)
-                if ("score" in o) {
+            for( var i = 0; i < teams.length; i++) {
+                let t = teams[i];
+                console.log(t)
+                if ("score" in t) {
                     console.log('found score')
-                    doc.opponents[i].score = parseInt(o.score, 10);
+                    doc.opponents[i].score = parseInt(t.score, 10);
                 }
-                if ("members" in o) {
+                if ("members" in t) {
                     console.log('found members')
-                    doc.opponents[i].members = o.members;
+                    doc.opponents[i].members = t.members;
                 }
             }
             if ("startTime" in req.body) {

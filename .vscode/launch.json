@@ -5,7 +5,14 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Debug Python",
+            "name": "Debug Game History",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/rasppi/game_history.py",
+            "console": "integratedTerminal"
+        },
+        {
+            "name": "Debug GUI",
             "type": "python",
             "request": "launch",
             "program": "${workspaceFolder}/rasppi/main.py",
