@@ -45,9 +45,6 @@ class GameHistoryPage extends React.Component {
                                 {game.endTime}
                                 </td>
                                 <td>
-                                {game.endTime}
-                                </td>
-                                <td>
                                 {team1.score + ' - ' + team2.score}
                                 </td>
                             </tr>

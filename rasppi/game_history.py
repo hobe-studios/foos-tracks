@@ -28,8 +28,8 @@ class TeamDTO(DataTransferObject):
 class GameDTO(DataTransferObject):
     def __init__(self, game:Game):
         super().__init__()
-        self.start_time = game.start_time.strftime("%Y/%m/%d/, %H:%M:%S")
-        self.end_time = game.end_time.strftime("%Y%m/%d, %H:%M:%S")
+        self.startTime = game.start_time.strftime("%Y/%m/%d/, %H:%M:%S")
+        self.endTime = game.end_time.strftime("%Y%m/%d, %H:%M:%S")
         self.teams = [TeamDTO(game.team1), TeamDTO(game.team2)]
 
 
@@ -38,7 +38,6 @@ def send_game_history(game:Game):
     gameDTO = GameDTO(game)
     payload = json.loads(gameDTO.toJSON())
     r = requests.post(url, json=payload)
-    print(r.json)
 
 
 def main():
