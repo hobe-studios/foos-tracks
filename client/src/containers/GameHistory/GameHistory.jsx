@@ -35,8 +35,8 @@ class GameHistoryPage extends React.Component {
                             </td>
                         </th>
                         {gameHistory.items.map((game, index) => {
-                            let team1 = game.opponents[0]
-                            let team2 = game.opponents[1]
+                            let team1 = game.teams[0]
+                            let team2 = game.teams[1]
                             return <tr>
                                 <td>
                                 {game.startTime}

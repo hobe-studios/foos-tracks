@@ -27,6 +27,7 @@ from signal import pause
 from datetime import datetime
 import simpleaudio as sa
 from models import Game, Goal, Team
+from game_history import send_game_history
 
 WIN_SCORE = 5
 
@@ -42,6 +43,7 @@ def check_game(game):
 def report_game_stats(game):
     winner = game.get_winning_team()
     loser = game.get_losing_team()
+    send_game_history(game)
     print_win_message(winning_team=winner, losing_team=loser)
 
 
@@ -75,19 +77,18 @@ def main(args):
 
     team_scored = lambda: play_sound_clip("/home/pi/Projects/FoosTracks/resources/SoccerGoal.wav")
 
-    team1 = Team(id=1, name="Team 1", score_handler=team_scored)
-    team2 = Team(id=2, name="Team 2", score_handler=team_scored)
+    team1 = Team(name="Team 1", members=["Jonny B", "Tiffy Monster"], score_handler=team_scored)
+    team2 = Team(name="Team 2", members=["Otis Spunky", "Broomhilda Grimp"], score_handler=team_scored)
 
     dev = MotionSensor(16, pull_up=True, sample_rate=60, queue_len=3)
     goal_a = Goal(name="Goal A",
                   score_device=dev,
                   score_handler=team1.scored)
-    goal_a.assigned_team = team1
 
-    dev = MotionSensor(18, pull_up=True, sample_rate=60, queue_len=3)
-    goal_a = Goal(name="Goal B",
+    dev = MotionSensor(19, pull_up=True, sample_rate=60, queue_len=3)
+    goal_b = Goal(name="Goal B",
                   score_device=dev,
-                  score_handler=team1.scored)
+                  score_handler=team2.scored)
 
     print("Starting game!")
 

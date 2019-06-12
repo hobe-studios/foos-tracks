@@ -1,5 +1,6 @@
 from gpiozero import MotionSensor
 from datetime import datetime
+from uuid import uuid4
 
 class Game:
     
@@ -35,9 +36,6 @@ class Game:
 
 
 class Goal:
-    name = ""
-    input_device = None
-    on_score = None
 
     def __init__(self, name="The goal", score_device:MotionSensor=None, score_handler=None):
         self.name = name
@@ -52,14 +50,11 @@ class Goal:
 
 class Team:
     
-    id = -1
-    name = ""
-    score = 0
-    on_score = None
-
-    def __init__(self, id, name, score_handler=None):
-        self.id = id
+    def __init__(self, name="The team", members=[], score_handler=None):
+        self.id = uuid4
+        self.score = 0
         self.name = name
+        self.members = members # array of string of member names
         self.on_score = score_handler
 
     def scored(self):
