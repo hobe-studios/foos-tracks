@@ -24,29 +24,21 @@ class GameHistoryPage extends React.Component {
 
                     <table className="table table">
                         <th>
-                            <td>
-                                Start Time
-                            </td>
-                            <td>
-                                End Time
-                            </td>
-                            <td>
-                                Score
-                            </td>
+                            <td>Team 1</td>
+                            <td>Team 2</td>
+                            <td>Score</td>
+                            <td>Start Time</td>
+                            <td>End Time</td>
                         </th>
                         {gameHistory.items.map((game, index) => {
                             let team1 = game.teams[0]
                             let team2 = game.teams[1]
                             return <tr>
-                                <td>
-                                {game.startTime}
-                                </td>
-                                <td>
-                                {game.endTime}
-                                </td>
-                                <td>
-                                {team1.score + ' - ' + team2.score}
-                                </td>
+                                <td>team1.name</td>
+                                <td>team2.name</td>
+                                <td>{team1.score + ' - ' + team2.score}</td>
+                                <td>{game.startTime}</td>
+                                <td>{game.endTime}</td>
                             </tr>
                         })}
                     </table>

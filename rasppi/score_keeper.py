@@ -181,6 +181,7 @@ class AsyncMatch(threading.Thread):
 
     def _clean_up(self):
         sa.stop_all()
+        # unset goal score handlers
         for d in self.devices:
             d.close()
 
