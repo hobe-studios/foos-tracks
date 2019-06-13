@@ -21,14 +21,14 @@ class Game:
         self.finished = False
 
     def get_winning_team(self):
-        if self.team1.score == self.team2.score:
+        if self.team1.total_score() == self.team2.total_score():
             return None
-        return self.team1 if self.team1.score > self.team2.score else self.team2 
+        return self.team1 if self.team1.total_score() > self.team2.total_score() else self.team2 
 
     def get_losing_team(self):
-        if self.team1.score == self.team2.score:
+        if self.team1.total_score() == self.team2.total_score():
             return None
-        return self.team1 if self.team1.score < self.team2.score else self.team2
+        return self.team1 if self.team1.total_score() < self.team2.total_score() else self.team2
 
     def finish(self):
         self.finished = True
@@ -44,8 +44,15 @@ class Goal:
         self.on_score = score_handler
 
     def scored(self):
-        #print("Goal scored in {0}!!".format(self.name))
         self.on_score()
+
+
+class Score:
+
+    def __init__(self, scorers_name, points=1):
+        self.timestamp = datetime.now
+        self.scorer = scorers_name
+        self.points = points
 
 
 class Team:
@@ -56,9 +63,24 @@ class Team:
         self.name = name
         self.members = members # array of string of member names
         self.on_score = score_handler
+        self.scores = []
 
-    def scored(self):
+    def set_on_score_handler(score_handler):
+        new_score = Score(scorers_name=self.name, points=1)
+        self.scores.append(new_score)
+        self.on_score = score_handler
+
+    def did_score(self):
         self.score += 1
         self.on_score()
         msg = "{0} has scored!!!\nNow has {1} points".format(self.name, self.score)
         print(msg)
+
+    def total_score():
+        total = 0
+        for s in self.scores:
+            total += s.points
+        return total
+
+    def reset_score():
+        self.scores.clear()

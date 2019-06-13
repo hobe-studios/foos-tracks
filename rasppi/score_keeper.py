@@ -32,11 +32,11 @@ from game_history import send_game_history
 WIN_SCORE = 5
 
 def check_game(game):
-    if game.team1.score >= WIN_SCORE and game.team2.score >= WIN_SCORE:
+    if game.team1.total_score() >= WIN_SCORE and game.team2.total_score() >= WIN_SCORE:
         assert False, "NOT POSSIBLE FOR BOTH TEAMS TO WIN"
-    elif game.team1.score >= WIN_SCORE:
+    elif game.team1.total_score() >= WIN_SCORE:
         game.finish()
-    elif  game.team2.score >= WIN_SCORE:
+    elif  game.team2.total_score() >= WIN_SCORE:
         game.finish()
 
 
@@ -49,15 +49,15 @@ def report_game_stats(game):
 
 def print_win_message(winning_team, losing_team):
     msg = "\n{0} has won!!!\n{0} - {1}, {2} - {3}".format(winning_team.name,
-                                                        winning_team.score,
+                                                        winning_team.total_score(),
                                                         losing_team.name,
-                                                        losing_team.score)
+                                                        losing_team.total_score())
     print(msg)
 
 
 def create_new_game(team1, team2):
-    team1.score = 0
-    team2.score = 0
+    team1.reset_score()
+    team2.reset_score()
     new_game = Game(team1, team2)
     return new_game
 
@@ -83,12 +83,12 @@ def main(args):
     dev = MotionSensor(16, pull_up=True, sample_rate=120, queue_len=1)
     goal_a = Goal(name="Goal A",
                   score_device=dev,
-                  score_handler=team1.scored)
+                  score_handler=team1.did_score)
 
     dev = MotionSensor(19, pull_up=True, sample_rate=120, queue_len=1)
     goal_b = Goal(name="Goal B",
                   score_device=dev,
-                  score_handler=team2.scored)
+                  score_handler=team2.did_score)
 
     print("Starting game!")
 
