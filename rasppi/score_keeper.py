@@ -80,12 +80,12 @@ def main(args):
     team1 = Team(name="Team 1", members=["Jonny B", "Tiffy Monster"], score_handler=team_scored)
     team2 = Team(name="Team 2", members=["Otis Spunky", "Broomhilda Grimp"], score_handler=team_scored)
 
-    dev = MotionSensor(16, pull_up=True, sample_rate=60, queue_len=3)
+    dev = MotionSensor(16, pull_up=True, sample_rate=120, queue_len=1)
     goal_a = Goal(name="Goal A",
                   score_device=dev,
                   score_handler=team1.scored)
 
-    dev = MotionSensor(19, pull_up=True, sample_rate=60, queue_len=3)
+    dev = MotionSensor(19, pull_up=True, sample_rate=120, queue_len=1)
     goal_b = Goal(name="Goal B",
                   score_device=dev,
                   score_handler=team2.scored)
