@@ -6,9 +6,9 @@
 
 import tkinter as tk
 import threading
-from queue import Queue
+from queue import Queue, Empty
 from score_keeper import start_match
-from constants import WIN_SCORE, UI_GAME_CLOCK, UI_TEAM1_SCORE, UI_TEAM2_SCORE
+from constants import UI_GAME_CLOCK, UI_TEAM1_SCORE, UI_TEAM2_SCORE
 
 
 class App(tk.Tk):
@@ -20,23 +20,25 @@ class App(tk.Tk):
 
     def _set_up_async_queue(self):
         self.queue = Queue()
-        self.after(250, self._process_queue)
+        self.after(100, self._process_queue)
 
     def _process_queue(self):
         try:
             msg = self.queue.get(0)
 
             # msg should be a dictionary with key value pairs, specifying what UI to update
-            for ui_elem, value in msg:
+            for ui_elem, value in msg.items():
                 if ui_elem == UI_GAME_CLOCK:
                     self.frames[MatchFrame].set_game_time(value)
                 elif ui_elem == UI_TEAM1_SCORE:
                     self.frames[MatchFrame].set_team1_score(value)
                 elif ui_elem == UI_TEAM2_SCORE:
-                    self.frames[MatchFrame].set_team2_scoree(value)
+                    self.frames[MatchFrame].set_team2_score(value)
 
-        except Queue.Empty:
-            self.master.after(100, self.process_queue)
+        except Empty:
+            pass
+
+        self.after(100, self._process_queue)
 
     def _create_ui(self):
         self.title("VIPER Foosball World")
@@ -55,9 +57,9 @@ class App(tk.Tk):
             frame.grid(row=0, column=0, sticky="nsew")
             self.frames[F] = frame
             
-        self._show_frame(MainFrame)
+        self.show_frame(MainFrame)
 
-    def _show_frame(self, frame):
+    def show_frame(self, frame):
         self.frames[frame].tkraise()
 
 
@@ -132,6 +134,7 @@ class EnterUserFrame(tk.Frame):
         self.quit_btn.grid(row=4, column=1, sticky=tk.W, pady=4)
         self.create_match_btn.grid(row=4, column=2, sticky=tk.W, pady=4)
 
+
     def show_match_frame(self):
         team1_name = self.team1_text.get()
         team2_name = self.team2_text.get()
@@ -160,9 +163,9 @@ class MatchFrame(tk.Frame):
 
         self.game_clock = tk.StringVar()
 
-        self.create_widgets()
+        self._create_widgets()
 
-    def create_widgets(self):
+    def _create_widgets(self):
         self.team1_name_label = tk.Label(self, text="", textvariable=self.team1_name)
         self.team2_name_label = tk.Label(self, text="", textvariable=self.team2_name)
 
@@ -194,14 +197,13 @@ class MatchFrame(tk.Frame):
     def start_match(self):
         self.team1_score.set(0)
         self.team2_score.set(0)
-        self.game_clock.set("00:00")
+        self.game_clock.set("00:00:00")
 
-
-
-        start_match(self.team1_name, self.team1_members, self.team2_name, self.team2_members, 
-                    team1_score_ui_var=self.team1_score,
-                    team2_score_ui_var=self.team2_score, 
-                    game_clock_ui_var=self.game_clock)
+        match = AsyncMatch(self.controller.queue,
+            self.team1_name.get(), self.team1_members,
+            self.team2_name.get(), self.team2_members
+        )
+        match.start()
 
     def set_game_time(self, game_time):
         self.game_clock.set(game_time)
@@ -212,6 +214,27 @@ class MatchFrame(tk.Frame):
     def set_team2_score(self, score):
         self.team2_score.set(score)
 
+
+class AsyncMatch(threading.Thread):
+    def __init__(self, ui_queue,
+                team1_name, team1_members, 
+                team2_name, team2_members,
+                games_per_match=1,
+                next_game_callback=None):
+        super().__init__()
+        self.ui_queue = ui_queue
+        self.team1_name = team1_name
+        self.team2_name = team2_name
+        self.team1_members = team1_members
+        self.team2_members = team2_members
+        self.game_per_match = games_per_match
+
+    def run(self):
+        start_match(self.team1_name, self.team1_members, 
+            self.team2_name, self.team2_members,
+            games_per_match=self.game_per_match,
+            ui_queue=self.ui_queue)
+            
 
 def main(args):
     app = App(args)

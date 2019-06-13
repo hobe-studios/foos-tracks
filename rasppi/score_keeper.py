@@ -63,17 +63,17 @@ def _get_elapsed_time_string(elapsed_seconds):
     return "{:0>2}:{:0>2}:{:0>2}".format(int(hours), int(minutes), int(seconds))
 
 
-def _update_ui(ui_queue, start_time, team1, team2):
+def _update_ui(ui_queue, start_time, game):
     elapsed_time = _get_elapsed_time_string(time() - start_time)
-    team1_score = team1.total_score()
-    team2_score = team2.total_score()
+    team1_score = game.team1.total_score()
+    team2_score = game.team2.total_score()
     if ui_queue:
         ui_msg = {
             UI_GAME_CLOCK: elapsed_time,
             UI_TEAM1_SCORE: team1_score,
-            UI_TEAM2_SCORE: team1_score
+            UI_TEAM2_SCORE: team2_score
         }
-        ui_queue.put(msg)
+        ui_queue.put(ui_msg)
 
 
 def _check_game(game):
@@ -101,7 +101,7 @@ def _start_new_game(team1, goal_1, team2, goal_2, sound_fx=True, ui_queue=None):
 
     start_time = time()
     while not game.finished:
-        _update_ui(ui_queue, start_time, team1, team2)
+        _update_ui(ui_queue, start_time, game)
         _check_game(game)
         sleep(0.1)
 
