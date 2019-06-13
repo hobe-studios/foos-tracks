@@ -28,7 +28,7 @@ from datetime import datetime, timedelta
 import simpleaudio as sa
 from models import Game, Goal, Team
 from game_history import send_game_history
-from constants import WIN_SCORE, UI_GAME_CLOCK, UI_TEAM1_SCORE, UI_TEAM2_SCORE
+from constants import UI_GAME_CLOCK, UI_TEAM1_SCORE, UI_TEAM2_SCORE
 import threading
 import queue
 
@@ -55,7 +55,8 @@ class AsyncMatch(threading.Thread):
     def __init__(self, ui_queue,
                 team1_name, team1_members, 
                 team2_name, team2_members,
-                games_per_match=1,
+                games_per_match,
+                points_to_win,
                 next_game_callback=None):
         super().__init__()
         self.ui_queue = ui_queue
@@ -64,6 +65,7 @@ class AsyncMatch(threading.Thread):
         self.team1_members = team1_members
         self.team2_members = team2_members
         self.game_per_match = games_per_match
+        self.points_to_win = points_to_win
         self.cancelled = False
         self.devices = []
 
@@ -71,11 +73,11 @@ class AsyncMatch(threading.Thread):
         self.cancelled = True
 
     def run(self):
-        self.cancelled = False
-        self._start_match(self.team1_name, self.team1_members, 
-            self.team2_name, self.team2_members,
-            games_per_match=self.game_per_match,
-            ui_queue=self.ui_queue)
+        if not self.cancelled:
+            self._start_match(self.team1_name, self.team1_members, 
+                self.team2_name, self.team2_members,
+                games_per_match=self.game_per_match,
+                ui_queue=self.ui_queue)
 
     def _start_match(self, team1_name, team1_members, 
                     team2_name, team2_members,
@@ -107,6 +109,10 @@ class AsyncMatch(threading.Thread):
             else:
                 self._start_new_game(team1, goal_b, team2, goal_a, ui_queue=self.ui_queue)
             
+            if self.cancelled:
+                print("Match was cancelled")
+                return
+
             games_played += 1
 
             if games_played < games_per_match:
@@ -135,7 +141,7 @@ class AsyncMatch(threading.Thread):
         start_time = time()
         while not game.finished:
             if self.cancelled:
-                print("Match was cancelled")
+                print("Game was cancelled")
                 self._clean_up()
                 return
             self._update_ui(ui_queue, start_time, game)
@@ -166,11 +172,11 @@ class AsyncMatch(threading.Thread):
             ui_queue.put(ui_msg)
 
     def _check_game(self, game):
-        if game.team1.total_score() >= WIN_SCORE and game.team2.total_score() >= WIN_SCORE:
+        if game.team1.total_score() >= self.points_to_win and game.team2.total_score() >= self.points_to_win:
             assert False, "NOT POSSIBLE FOR BOTH TEAMS TO WIN"
-        elif game.team1.total_score() >= WIN_SCORE:
+        elif game.team1.total_score() >= self.points_to_win:
             game.finish()
-        elif  game.team2.total_score() >= WIN_SCORE:
+        elif  game.team2.total_score() >= self.points_to_win:
             game.finish()
 
     def _clean_up(self):
