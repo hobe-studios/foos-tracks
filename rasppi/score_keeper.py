@@ -22,16 +22,61 @@
 #  
 
 from gpiozero import Button, PWMLED, MotionSensor
-from time import sleep
+from time import sleep, time
 from signal import pause
-from datetime import datetime
+from datetime import datetime, timedelta
 import simpleaudio as sa
 from models import Game, Goal, Team
 from game_history import send_game_history
+from constants import WIN_SCORE, UI_GAME_CLOCK, UI_TEAM1_SCORE, UI_TEAM2_SCORE
 
-WIN_SCORE = 5
 
-def check_game(game):
+def _report_game_stats(game):
+    winner = game.get_winning_team()
+    loser = game.get_losing_team()
+    send_game_history(game)
+    _print_win_message(winning_team=winner, losing_team=loser)
+
+
+def _print_win_message(winning_team, losing_team):
+    msg = "\n{0} has won!!!\n{0} - {1}, {2} - {3}".format(winning_team.name,
+                                                        winning_team.total_score(),
+                                                        losing_team.name,
+                                                        losing_team.total_score())
+    print(msg)
+
+
+def _ask_for_new_game():
+    print("New game?")
+
+
+def _play_sound_clip(sound_file, wait=False):
+    wave_obj = sa.WaveObject.from_wave_file(sound_file)
+    play_obj = wave_obj.play()
+    if wait:
+        play_obj.wait_done() 
+
+
+def _get_elapsed_time_string(elapsed_seconds):
+    hours, rem = divmod(elapsed_seconds, 3600)
+    minutes, seconds = divmod(rem, 60)
+    return "{:0>2}:{:0>2}:{:0>2}".format(int(hours), int(minutes), int(seconds))
+
+
+def _update_ui(ui_queue, start_time, team1, team2):
+    elapsed_time = _get_elapsed_time_string(time() - start_time)
+    team1_score = team1.total_score()
+    team2_score = team2.total_score()
+    if ui_queue:
+        ui_msg = {
+            UI_GAME_CLOCK: elapsed_time,
+            UI_TEAM1_SCORE: team1_score,
+            UI_TEAM2_SCORE: team1_score
+        }
+        ui_queue.put(msg)
+
+
+def _check_game(game):
     if game.team1.total_score() >= WIN_SCORE and game.team2.total_score() >= WIN_SCORE:
         assert False, "NOT POSSIBLE FOR BOTH TEAMS TO WIN"
     elif game.team1.total_score() >= WIN_SCORE:
@@ -40,69 +85,84 @@ def check_game(game):
         game.finish()
 
 
-def report_game_stats(game):
-    winner = game.get_winning_team()
-    loser = game.get_losing_team()
-    send_game_history(game)
-    print_win_message(winning_team=winner, losing_team=loser)
+def _start_new_game(team1, goal_1, team2, goal_2, sound_fx=True, ui_queue=None):
+    
+    print("Starting new game ...")
+
+    goal_1.set_on_score_handler(team1.did_score)
+    goal_2.set_on_score_handler(team2.did_score)
+
+    game = Game(team1=team1, team2=team2)
+
+    game.start()
+
+    if sound_fx:
+        _play_sound_clip("/home/pi/Projects/FoosTracks/resources/SoccerCrowd.wav")
+
+    start_time = time()
+    while not game.finished:
+        _update_ui(ui_queue, start_time, team1, team2)
+        _check_game(game)
+        sleep(0.1)
+
+    # Game is finished
+    _report_game_stats(game)
 
 
-def print_win_message(winning_team, losing_team):
-    msg = "\n{0} has won!!!\n{0} - {1}, {2} - {3}".format(winning_team.name,
-                                                        winning_team.total_score(),
-                                                        losing_team.name,
-                                                        losing_team.total_score())
-    print(msg)
+def _team_scored(team):
+    _play_sound_clip("/home/pi/Projects/FoosTracks/resources/SoccerGoal.wav")
 
 
-def create_new_game(team1, team2):
-    team1.reset_score()
-    team2.reset_score()
-    new_game = Game(team1, team2)
-    return new_game
+def start_match(team1_name, team1_members, 
+                team2_name, team2_members,
+                games_per_match=1,
+                ui_queue=None,  # queue for asyncrohonus updates to the tkinter UI
+                next_game_callback=None):  # next_game_call_back is a function that determines whether the next game in the match should be played.  Takes no argments and returns boolean, True if game should be played, False if match shoiuld be ended.
 
+    print("Starting match ...")
 
-def ask_for_new_game():
-    print("New game?")
-
-
-def play_sound_clip(sound_file, wait=False):
-    wave_obj = sa.WaveObject.from_wave_file(sound_file)
-    play_obj = wave_obj.play()
-    if wait:
-        play_obj.wait_done() 
-
-
-def main(args):
-
-    team_scored = lambda: play_sound_clip("/home/pi/Projects/FoosTracks/resources/SoccerGoal.wav")
-
-    team1 = Team(name="Team 1", members=["Jonny B", "Tiffy Monster"], score_handler=team_scored)
-    team2 = Team(name="Team 2", members=["Otis Spunky", "Broomhilda Grimp"], score_handler=team_scored)
+    team1 = Team(name=team1_name, members=team1_members, score_handler=_team_scored)
+    team2 = Team(name=team2_name, members=team2_members, score_handler=_team_scored)
 
     dev = MotionSensor(16, pull_up=True, sample_rate=120, queue_len=1)
     goal_a = Goal(name="Goal A",
                   score_device=dev,
-                  score_handler=team1.did_score)
+                  score_handler=None)
 
     dev = MotionSensor(19, pull_up=True, sample_rate=120, queue_len=1)
     goal_b = Goal(name="Goal B",
                   score_device=dev,
-                  score_handler=team2.did_score)
+                  score_handler=None)
 
-    print("Starting game!")
+    games_played = 0
+    while games_played < games_per_match:
+        if games_played % 2 == 0:
+            _start_new_game(team1, goal_a, team2, goal_b, ui_queue=ui_queue)
+        else:
+            _start_new_game(team1, goal_b, team2, goal_a, ui_queue=ui_queue)
+        
+        games_played += 1
 
-    game = Game(team1=team1, team2=team2)
+        if games_played < games_per_match:
+            if next_game_callback:
+                play_next = next_game_callback()
+                if not play_next:
+                    break
+            else:
+                input("Press enter to play game {0} of {1} in the match ...".format(games_played+1, games_per_match))
+        else:
+            print("Match is over hope you had fun!")
 
-    play_sound_clip("/home/pi/Projects/FoosTracks/resources/SoccerCrowd.wav")
 
-    while not game.finished:
-        check_game(game)
-        sleep(0.1)
+def main(args):
+    team1_name = "Team A"
+    team2_name = "Team B"
 
-    report_game_stats(game)
-    ask_for_new_game()
-    pause()
+    team1_members = ["Jonny B", "Tiffy Monster"]
+    team2_members = ["Otis Spunky", "Broomhilda Grimp"]
+
+    start_match(team1_name=team1_name, team1_members=team1_members, team2_name=team2_name, team2_members=team2_members)
+
 
 # # Test main methods
 

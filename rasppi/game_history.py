@@ -19,7 +19,7 @@ class DataTransferObject:
 
 
 class ScoreDTO(DataTransferObject):
-    def __init__(self, score:Score)
+    def __init__(self, score:Score):
         super().__init__()
         self.points = score.points
         self.scorer = score.scorer
@@ -43,10 +43,11 @@ class GameDTO(DataTransferObject):
 
 
 def send_game_history(game:Game):
-    url = "http://192.168.1.10:3001/games"
+    url = "http://10.0.0.157:3001/games"
     gameDTO = GameDTO(game)
     payload = json.loads(gameDTO.toJSON())
-    r = requests.post(url, json=payload)
+    print("Saving game results ...")
+    r = requests.post(url, json=payload, timeout=5)
 
 
 def main():

@@ -1,3 +1,5 @@
 {
-    "python.pythonPath": "/Users/jbachm182/.local/share/virtualenvs/rasppi-7ydy3Z7o/bin/python"
+    "python.pythonPath": "/Users/jbachm182/.local/share/virtualenvs/rasppi-7ydy3Z7o/bin/python",
+    "python.linting.pylintEnabled": true,
+    "python.linting.enabled": true
 }
