@@ -202,41 +202,6 @@ def main(args):
     start_match(team1_name=team1_name, team1_members=team1_members, team2_name=team2_name, team2_members=team2_members)
 
 
-# # Test main methods
-
-# def main_pwm(args):
-#     led = PWMLED(21)
-#     led.pulse()
-#     pause()
-
-
-# def handle_motion():
-#     print("Shake switch moved.")
-
-
-# def main_vib(args):
-#     vib = MotionSensor(16, pull_up=True)
-#     print("Waiting for motion ...")
-#     vib.when_motion = lambda: print("Shake switch moved.") #handle_motion
-
-#     #pause()
-
-#     while True:
-#         print(vib.value)
-#         sleep(0.1)
-
-
-# def main_play_sound(args):
-#     print("Gonna play sound ...")
-#     sound_file = "/home/pi/Projects/FoosTracks/resources/SoccerCrowd.wav"
-#     wave_obj = sa.WaveObject.from_wave_file(sound_file)
-#     play_obj = wave_obj.play()
-#     print("Should be playing sound ...")
-#     play_obj.wait_done()
-
-
 if __name__ == '__main__':
     import sys
-    #main = main_play_sound
-    #main = main_vib
     sys.exit(main(sys.argv))
