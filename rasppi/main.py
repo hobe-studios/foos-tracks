@@ -7,7 +7,7 @@
 import tkinter as tk
 import threading
 from queue import Queue, Empty
-from score_keeper import start_match
+from score_keeper import AsyncMatch
 from constants import UI_GAME_CLOCK, UI_TEAM1_SCORE, UI_TEAM2_SCORE
 
 
@@ -174,8 +174,8 @@ class MatchFrame(tk.Frame):
 
         self.game_clock_label = tk.Label(self, text="", textvariable=self.game_clock)
 
-        self.end_btn = tk.Button(self, text="Cancel", command=self.quit)
-        self.start_btn = tk.Button(self, text="Start", command=self.start_match)
+        self.cancel_btn = tk.Button(self, text="Cancel", command=self._quit_match)
+        self.start_btn = tk.Button(self, text="Start", command=self._start_match)
 
         self.team1_name_label.grid(row=0, column=0)
         self.team1_score_label.grid(row=1, column=0)
@@ -184,7 +184,7 @@ class MatchFrame(tk.Frame):
 
         self.game_clock_label.grid(row=2, column=0)
 
-        self.end_btn.grid(row=3, column=0, sticky=tk.W, pady=4)
+        self.cancel_btn.grid(row=3, column=0, sticky=tk.W, pady=4)
         self.start_btn.grid(row=3, column=1, sticky=tk.W, pady=4)
 
     def set_match_info(self, team1_name, team1_members, team2_name, team2_members):
@@ -194,16 +194,19 @@ class MatchFrame(tk.Frame):
         self.team1_members = team1_members
         self.team2_members = team1_members
 
-    def start_match(self):
+    def _start_match(self):
         self.team1_score.set(0)
         self.team2_score.set(0)
         self.game_clock.set("00:00:00")
 
-        match = AsyncMatch(self.controller.queue,
+        self.match = AsyncMatch(self.controller.queue,
             self.team1_name.get(), self.team1_members,
             self.team2_name.get(), self.team2_members
         )
-        match.start()
+        self.match.start()
+
+    def _quit_match(self):
+        self.match.cancel()
 
     def set_game_time(self, game_time):
         self.game_clock.set(game_time)
@@ -214,27 +217,6 @@ class MatchFrame(tk.Frame):
     def set_team2_score(self, score):
         self.team2_score.set(score)
 
-
-class AsyncMatch(threading.Thread):
-    def __init__(self, ui_queue,
-                team1_name, team1_members, 
-                team2_name, team2_members,
-                games_per_match=1,
-                next_game_callback=None):
-        super().__init__()
-        self.ui_queue = ui_queue
-        self.team1_name = team1_name
-        self.team2_name = team2_name
-        self.team1_members = team1_members
-        self.team2_members = team2_members
-        self.game_per_match = games_per_match
-
-    def run(self):
-        start_match(self.team1_name, self.team1_members, 
-            self.team2_name, self.team2_members,
-            games_per_match=self.game_per_match,
-            ui_queue=self.ui_queue)
-            
 
 def main(args):
     app = App(args)
