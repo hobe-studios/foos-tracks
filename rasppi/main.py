@@ -5,6 +5,7 @@
 
 
 import tkinter as tk
+from tkinter import messagebox
 from queue import Queue, Empty
 from score_keeper import AsyncMatch
 from constants import UI_GAME_CLOCK, UI_TEAM1_SCORE, UI_TEAM2_SCORE
@@ -104,13 +105,20 @@ class MatchSetupFrame(tk.Frame):
         self.team2_player1_text = tk.Entry(self)
         self.team2_player2_text = tk.Entry(self)
 
+        self.team1_text.insert(0, "Hatfields")
+        self.team2_text.insert(0, "McCoys")
+        self.team1_player1_text.insert(0, "Samuel")
+        self.team1_player2_text.insert(0, "Liza")
+        self.team2_player1_text.insert(0, "Joseph")
+        self.team2_player2_text.insert(0, "Betty")
+
         self.number_games_label = tk.Label(self, text="Games per match")
         self.number_games_text = tk.Entry(self)
-        self.number_games_text.insert(0, "3")
+        self.number_games_text.insert(0, "2")
 
         self.win_points_label = tk.Label(self, text="Points needed to win")
         self.win_points_text = tk.Entry(self)
-        self.win_points_text.insert(0, "5")
+        self.win_points_text.insert(0, "2")
 
         self.create_match_btn = tk.Button(self, text='Create Match', command=self.show_match_frame)
 
@@ -213,12 +221,21 @@ class MatchFrame(tk.Frame):
         self.match = AsyncMatch(self.controller.queue,
             self.team1_name.get(), self.team1_members,
             self.team2_name.get(), self.team2_members,
-            self.games_per_match, self.win_points
+            self.games_per_match, self.win_points,
+            next_game_callback=self.get_yes_no_response_from_user,
+            match_end_callback=self.handle_match_end
         )
         self.match.start()
 
+    def get_yes_no_response_from_user(self, message, title):
+        return messagebox.askyesno(title, message)
+
+    def handle_match_end(self):
+        self.controller.show_frame(MatchSetupFrame)
+
     def _quit_match(self):
         self.match.cancel()
+        self.controller.show_frame(MatchSetupFrame)
 
     def set_game_time(self, game_time):
         self.game_clock.set(game_time)

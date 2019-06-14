@@ -55,17 +55,21 @@ class AsyncMatch(threading.Thread):
     def __init__(self, ui_queue,
                 team1_name, team1_members, 
                 team2_name, team2_members,
-                games_per_match,
-                points_to_win,
-                next_game_callback=None):
+                games_per_match=1,
+                points_to_win=5,
+                next_game_callback=None,
+                match_end_callback=None):
         super().__init__()
-        self.ui_queue = ui_queue
+        self.ui_queue = ui_queue # queue for asyncrohonus updates to the tkinter UI
         self.team1_name = team1_name
         self.team2_name = team2_name
         self.team1_members = team1_members
         self.team2_members = team2_members
-        self.game_per_match = games_per_match
+        self.games_per_match = games_per_match
         self.points_to_win = points_to_win
+        self.next_game_callback = next_game_callback # function that determines whether the next game in the match should be played.  Takes no argments and returns boolean, True if game should be played, False if match shoiuld be ended.
+        self.match_end_callback = match_end_callback # function that notifies UI that the match has ended, takkes no argments and returns nothing.
+
         self.cancelled = False
         self.devices = []
 
@@ -74,17 +78,9 @@ class AsyncMatch(threading.Thread):
 
     def run(self):
         if not self.cancelled:
-            self._start_match(self.team1_name, self.team1_members, 
-                self.team2_name, self.team2_members,
-                games_per_match=self.game_per_match,
-                ui_queue=self.ui_queue)
+            self._start_match()
 
-    def _start_match(self, team1_name, team1_members, 
-                    team2_name, team2_members,
-                    games_per_match=1,
-                    ui_queue=None,  # queue for asyncrohonus updates to the tkinter UI
-                    next_game_callback=None):  # next_game_call_back is a function that determines whether the next game in the match should be played.  Takes no argments and returns boolean, True if game should be played, False if match shoiuld be ended.
-
+    def _start_match(self):  
         print("Starting match ...")
 
         team1 = Team(name=self.team1_name, members=self.team1_members, score_handler=_team_scored)
@@ -103,30 +99,32 @@ class AsyncMatch(threading.Thread):
         self.devices = [goal_a.input_device, goal_b.input_device]
 
         games_played = 0
-        while games_played < games_per_match:
+        while games_played < self.games_per_match:
             if games_played % 2 == 0:
-                self._start_new_game(team1, goal_a, team2, goal_b, ui_queue=self.ui_queue)
+                last_game = self._start_new_game(team1, goal_a, team2, goal_b, ui_queue=self.ui_queue)
             else:
-                self._start_new_game(team1, goal_b, team2, goal_a, ui_queue=self.ui_queue)
+                last_game = self._start_new_game(team1, goal_b, team2, goal_a, ui_queue=self.ui_queue)
             
             if self.cancelled:
+                self._clean_up()
                 print("Match was cancelled")
                 return
 
+            # Game has finished check if the next game in the match should be played
             games_played += 1
-
-            if games_played < games_per_match:
-                if next_game_callback:
-                    play_next = next_game_callback()
-                    if not play_next:
-                        break
-                else:
-                    input("Press enter to play game {0} of {1} in the match ...".format(games_played+1, games_per_match))
+            if games_played < self.games_per_match:
+                if not self._play_next_game(last_game):
+                    self._clean_up()
+                    if self.match_end_callback:
+                        self.match_end_callback()
+                    break
             else:
+                # Match is over
+                if self.match_end_callback:
+                    self.match_end_callback()
                 print("Match is over hope you had fun!")
 
     def _start_new_game(self, team1, goal_1, team2, goal_2, sound_fx=True, ui_queue=None):
-        
         print("Starting new game ...")
 
         goal_1.set_on_score_handler(team1.did_score)
@@ -150,6 +148,7 @@ class AsyncMatch(threading.Thread):
 
         # Game is finished
         self._report_game_stats(game)
+        return game
 
     def _start_fx(self):
         sound_file = "/home/pi/Projects/FoosTracks/resources/SoccerCrowd.wav"
@@ -198,17 +197,13 @@ class AsyncMatch(threading.Thread):
                                                             losing_team.total_score())
         print(msg)
 
-
-def main(args):
-    team1_name = "Team A"
-    team2_name = "Team B"
-
-    team1_members = ["Jonny B", "Tiffy Monster"]
-    team2_members = ["Otis Spunky", "Broomhilda Grimp"]
-
-    start_match(team1_name=team1_name, team1_members=team1_members, team2_name=team2_name, team2_members=team2_members)
-
-
-if __name__ == '__main__':
-    import sys
-    sys.exit(main(sys.argv))
+    def _play_next_game(self, last_game):
+        if self.next_game_callback:
+            winner = last_game.get_winning_team()
+            loser = last_game.get_losing_team()
+            msg = "{0} won!\n\nScore\n  {0} - {1}\n  {2} - {3}\n\nPlay next game?".format(winner.name, winner.total_score(), loser.name, loser.total_score())
+            play_next = self.next_game_callback(message=msg, title="")
+            return play_next
+        else:
+            input("Press enter to play next game ...")
+            return True
