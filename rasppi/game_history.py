@@ -32,6 +32,7 @@ class TeamDTO(DataTransferObject):
         self.members = team.members
         self.scores = [ ScoreDTO(s) for s in team.scores ] 
         self.score = team.total_score()
+        self.name = team.name
 
 
 class GameDTO(DataTransferObject):
@@ -48,15 +49,3 @@ def send_game_history(game:Game):
     payload = json.loads(gameDTO.toJSON())
     print("Saving game results ...")
     r = requests.post(url, json=payload, timeout=5)
-
-
-def main():
-    team1 = Team(name="A", members=["Jill", "Jack"])
-    team2 = Team(name="B", members=["Bod", "Bonnie"])
-    game = Game(team1, team2)
-    game.finish()
-    send_game_history(game)
-
-
-if __name__ == '__main__':
-    main()

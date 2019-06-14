@@ -154,6 +154,10 @@ module.exports.gamesUpdateOne = function(req, res) {
                     console.log('found members')
                     doc.opponents[i].members = t.members;
                 }
+                if ("name" in t) {
+                    console.log('found name')
+                    doc.opponents[i].name = t.name;
+                }
             }
             if ("startTime" in req.body) {
                 console.log('found start time')

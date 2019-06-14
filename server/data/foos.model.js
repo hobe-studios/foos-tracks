@@ -38,7 +38,13 @@ userSchema.methods.validatePassword = function(password) {
 // })
 
 var gameSchema = new mongoose.Schema({
-    teams: [{members: [String], score: Number}],
+    teams: [
+        {
+            name: String,
+            members: [String], 
+            score: Number
+        }   
+    ],
     startTime: Date,
     endTime: Date
 });

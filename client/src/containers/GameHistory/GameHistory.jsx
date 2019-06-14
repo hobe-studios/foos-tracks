@@ -23,24 +23,31 @@ class GameHistoryPage extends React.Component {
                 {gameHistory.items &&
 
                     <table className="table table">
-                        <th>
-                            <td>Team 1</td>
-                            <td>Team 2</td>
-                            <td>Score</td>
-                            <td>Start Time</td>
-                            <td>End Time</td>
-                        </th>
-                        {gameHistory.items.map((game, index) => {
-                            let team1 = game.teams[0]
-                            let team2 = game.teams[1]
-                            return <tr>
-                                <td>team1.name</td>
-                                <td>team2.name</td>
-                                <td>{team1.score + ' - ' + team2.score}</td>
-                                <td>{game.startTime}</td>
-                                <td>{game.endTime}</td>
+                        <thead>
+                            <tr>
+                                <th>Team 1</th>
+                                <th>Team 2</th>
+                                <th>Score</th>
+                                <th>Start Time</th>
+                                <th>End Time</th>
                             </tr>
-                        })}
+                        </thead>
+                        <tbody>
+                            {gameHistory.items.map((game, index) => {
+                                let team1 = game.teams[0]
+                                let team2 = game.teams[1]
+                                console.log(game.startTime)
+                                let startTime = Date(game.startTime);
+                                let endTime = Date(game.endTime);
+                                return <tr>
+                                    <td>{team1.name}</td>
+                                    <td>{team2.name}</td>
+                                    <td>{team1.score + ' - ' + team2.score}</td>
+                                    <td>{startTime}</td>
+                                    <td>{endTime}</td>
+                                </tr>
+                            })}
+                        </tbody>
                     </table>
                 }
                 <p>
