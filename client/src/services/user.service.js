@@ -11,7 +11,7 @@ export const userService = {
 };
 
 var config ={
-    apiUrl: "http://localhost:3000"
+    apiUrl: "http://10.169.242.159:3001"
 }
 
 function login(userName, password) {
