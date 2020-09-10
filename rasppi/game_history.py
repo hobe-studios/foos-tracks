@@ -44,7 +44,7 @@ class GameDTO(DataTransferObject):
 
 
 def send_game_history(game:Game):
-    url = "http://10.0.0.157:3001/games"
+    url = "http://192.168.10.:3001/games"
     gameDTO = GameDTO(game)
     payload = json.loads(gameDTO.toJSON())
     print("Saving game results ...")

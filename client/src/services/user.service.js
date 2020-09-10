@@ -11,7 +11,7 @@ export const userService = {
 };
 
 var config ={
-    apiUrl: "http://10.169.242.159:3001"
+    apiUrl: "http://192.168.1.10:3001"
 }
 
 function login(userName, password) {
